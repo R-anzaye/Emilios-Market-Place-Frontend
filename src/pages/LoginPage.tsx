@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 
+import api from "@/api/axiosInstance";
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -14,20 +16,38 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  setIsLoading(true);
 
-    // Simulate login
-    setTimeout(() => {
-      setIsLoading(false);
-      toast({
-        title: "Welcome back!",
-        description: "You have been logged in successfully.",
-      });
-      navigate("/dashboard");
-    }, 1000);
-  };
+  try {
+  
+    const response = await api.post('login/', {
+      username: email, 
+      password: password,
+    });
+
+    localStorage.setItem('access_token', response.data.access);
+    localStorage.setItem('refresh_token', response.data.refresh);
+
+    toast({ 
+      title: "Welcome back!", 
+      description: "You have been logged in successfully." 
+    });
+
+    navigate("/dashboard");
+
+  } catch (error: any) {
+    toast({ 
+      title: "Login Failed", 
+      description: error.response?.data?.detail || "Please check your credentials.",
+      variant: "destructive" 
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <Layout showFooter={false}>

@@ -8,39 +8,59 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 
+import api from "@/api/axiosInstance";
+
 export default function RegisterPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    if (!agreedToTerms) {
-      toast({
-        title: "Terms required",
-        description: "Please agree to the terms and conditions.",
-        variant: "destructive",
-      });
-      return;
-    }
 
-    setIsLoading(true);
+  if (!agreedToTerms) {
+    toast({
+      title: "Terms required",
+      description: "Please agree to the terms and conditions.",
+      variant: "destructive",
+    });
+    return;
+  }
 
-    // Simulate registration
-    setTimeout(() => {
-      setIsLoading(false);
-      toast({
-        title: "Account created!",
-        description: "Welcome to Marketplace. Start buying and selling!",
-      });
-      navigate("/dashboard");
-    }, 1000);
-  };
+  setIsLoading(true);
+
+  try {
+    await api.post('register/', {
+      username: email, 
+      email: email,
+      password: password,
+    });
+
+    toast({ 
+      title: "Account created!", 
+      description: "Welcome to Marketplace. Please log in to continue." 
+    });
+    
+    navigate("/login");
+
+  } catch (error: any) {
+    toast({ 
+      title: "Registration Error", 
+      description: error.response?.data?.username?.[0] || 
+                   error.response?.data?.email?.[0] || 
+                   "Registration failed. Please try again.", 
+      variant: "destructive" 
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <Layout showFooter={false}>
